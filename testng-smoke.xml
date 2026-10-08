@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!-- Smoke suite: the subset a pipeline runs before promoting a build. -->
+<suite name="Smoke" parallel="methods" thread-count="3" verbose="1">
+
+  <listeners>
+    <listener class-name="com.deepakkhatri.qa.listeners.TestListener"/>
+  </listeners>
+
+  <test name="Smoke">
+    <groups>
+      <run>
+        <include name="smoke"/>
+      </run>
+    </groups>
+    <classes>
+      <class name="com.deepakkhatri.qa.tests.LoginTests"/>
+      <class name="com.deepakkhatri.qa.tests.InventoryTests"/>
+      <class name="com.deepakkhatri.qa.tests.CartTests"/>
+      <class name="com.deepakkhatri.qa.tests.CheckoutTests"/>
+    </classes>
+  </test>
+</suite>

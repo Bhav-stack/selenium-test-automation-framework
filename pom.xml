@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.deepakkhatri.qa</groupId>
+  <artifactId>selenium-java-testng-framework</artifactId>
+  <version>1.0.0</version>
+  <packaging>jar</packaging>
+
+  <name>Selenium TestNG Framework</name>
+  <description>
+    Selenium WebDriver + TestNG UI automation framework: Page Object Model,
+    thread-safe parallel execution, data providers, Allure reporting and
+    Dockerised Selenium Grid.
+  </description>
+
+  <properties>
+    <maven.compiler.release>17</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <selenium.version>4.33.0</selenium.version>
+    <testng.version>7.11.0</testng.version>
+    <allure.version>2.29.1</allure.version>
+    <jackson.version>2.18.4</jackson.version>
+    <aspectj.version>1.9.24</aspectj.version>
+    <slf4j.version>2.0.17</slf4j.version>
+
+    <surefire.version>3.5.2</surefire.version>
+    <compiler.plugin.version>3.13.0</compiler.plugin.version>
+    <allure.maven.version>2.15.2</allure.maven.version>
+
+    <!-- Overridable from the command line: -Dsuite=testng-smoke.xml -->
+    <suite>testng.xml</suite>
+    <!-- Thread count for TestNG's parallel execution. -->
+    <threads>3</threads>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.qameta.allure</groupId>
+        <artifactId>allure-bom</artifactId>
+        <version>${allure.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!-- Selenium 4.6+ ships Selenium Manager, which resolves the matching
+         driver binary at run time. No WebDriverManager dependency and no
+         checked-in chromedriver. -->
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-java</artifactId>
+      <version>${selenium.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>${testng.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.qameta.allure</groupId>
+      <artifactId>allure-testng</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${compiler.plugin.version}</version>
+        <configuration>
+          <!-- Keeps parameter names in the bytecode so Allure can resolve the
+               placeholders in @Step("... {product} ...") annotations. Without
+               it the step names silently degrade to the raw template. -->
+          <parameters>true</parameters>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${surefire.version}</version>
+        <configuration>
+          <suiteXmlFiles>
+            <suiteXmlFile>${suite}</suiteXmlFile>
+          </suiteXmlFiles>
+          <!-- Overrides the suite file's own parallel settings, which is what
+               makes -Dthreads=N effective. CI runners have fewer cores than a
+               developer machine, and oversubscribing them starves the browsers
+               badly enough to change test outcomes. -->
+          <parallel>methods</parallel>
+          <threadCount>${threads}</threadCount>
+          <!-- The AspectJ weaver is what makes @Step and @Attachment appear in
+               the Allure report; without it the report loses its step detail. -->
+          <argLine>
+            -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
+          </argLine>
+          <systemPropertyVariables>
+            <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
+          </systemPropertyVariables>
+          <!-- A failing test must fail the build; the report is generated
+               either way by the CI workflow. -->
+          <testFailureIgnore>false</testFailureIgnore>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>${aspectj.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
+      <plugin>
+        <groupId>io.qameta.allure</groupId>
+        <artifactId>allure-maven</artifactId>
+        <version>${allure.maven.version}</version>
+        <configuration>
+          <reportVersion>2.29.0</reportVersion>
+          <resultsDirectory>${project.build.directory}/allure-results</resultsDirectory>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <!-- Default: real browsers on the local machine. -->
+    <profile>
+      <id>local</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <execution.mode>local</execution.mode>
+      </properties>
+    </profile>
+
+    <!-- mvn test -Pgrid — run against a Selenium Grid (see docker-compose.grid.yml). -->
+    <profile>
+      <id>grid</id>
+      <properties>
+        <execution.mode>grid</execution.mode>
+      </properties>
+    </profile>
+  </profiles>
+</project>

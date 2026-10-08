@@ -1,0 +1,38 @@
+[
+  {
+    "username": "standard_user",
+    "password": "not_the_password",
+    "description": "valid username, incorrect password",
+    "expectedError": "Epic sadface: Username and password do not match any user in this service"
+  },
+  {
+    "username": "no_such_user",
+    "password": "secret_sauce",
+    "description": "username that was never registered",
+    "expectedError": "Epic sadface: Username and password do not match any user in this service"
+  },
+  {
+    "username": "",
+    "password": "secret_sauce",
+    "description": "username omitted",
+    "expectedError": "Epic sadface: Username is required"
+  },
+  {
+    "username": "standard_user",
+    "password": "",
+    "description": "password omitted",
+    "expectedError": "Epic sadface: Password is required"
+  },
+  {
+    "username": "",
+    "password": "",
+    "description": "both fields omitted",
+    "expectedError": "Epic sadface: Username is required"
+  },
+  {
+    "username": "STANDARD_USER",
+    "password": "secret_sauce",
+    "description": "username in the wrong case",
+    "expectedError": "Epic sadface: Username and password do not match any user in this service"
+  }
+]

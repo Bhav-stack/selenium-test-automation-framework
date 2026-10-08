@@ -1,0 +1,14 @@
+target/
+allure-results/
+allure-report/
+.allure/
+test-output/
+*.log
+
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# The wrapper jar is downloaded by mvnw on first run.
+.mvn/wrapper/maven-wrapper.jar
